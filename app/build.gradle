@@ -33,7 +33,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment:2.0.0'
     implementation 'androidx.navigation:navigation-ui:2.0.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
-    implementation 'jfugue:jfugue:4.0.3'
+    implementation 'jfugue:jfugue:5.0.9'
     implementation 'org.clojure:clojure:1.2.0'
     implementation 'org.clojure:clojure-contrib:1.2.0'
     testImplementation 'junit:junit:4.12'
