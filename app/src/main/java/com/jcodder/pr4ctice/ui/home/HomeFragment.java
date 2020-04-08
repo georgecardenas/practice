@@ -17,6 +17,12 @@ import androidx.lifecycle.ViewModelProviders;
 import nu.xom.ParsingException;
 
 import com.jcodder.pr4ctice.R;
+import com.jcodder.pr4ctice.model.Part;
+import com.jcodder.pr4ctice.parser.MusicXMLParser;
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 
 import org.jfugue.integration.MusicXmlParser;
 import org.jfugue.pattern.Pattern;
@@ -49,34 +55,16 @@ public class HomeFragment extends Fragment {
                 textView.setText("\uE050 \uE09E\uE084\uE09F\uE084 \uEB90\uE1D5\uE8E0=\uE8E1\uEB90\uE1D5    \uEB90\uE0FB-\uEB90\uE210");        //U+EB90 U+E0A4 U+E210
     }
 });
+        MusicXMLParser mXParser = new MusicXMLParser();
 
-        /*MusicXmlParser parser = null;
         try {
-            parser = new MusicXmlParser();
-        } catch (ParserConfigurationException e) {
+            Part part = mXParser.parse(getActivity().getResources().openRawResource(R.raw.fpagana));
+            part.getId();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        StaccatoParserListener listener = new StaccatoParserListener();
-        parser.addParserListener(listener);
-        try {
-            InputStream is = getActivity().getAssets().open("fpagana.xml");
-            byte[] buffer = new byte[is.available()];
-            is.read(buffer);
-
-            File targetFile = new File(getActivity().getFilesDir(), "fpagana.xml");
-            OutputStream outStream = new FileOutputStream(targetFile);
-            outStream.write(buffer);
-            outStream.flush();
-            outStream.close();
-
-            parser.parse(targetFile);
-            Pattern staccatoPattern = listener.getPattern();
-            System.out.println(staccatoPattern);
-
-        } catch (IOException | ParsingException e) {
-            e.printStackTrace();
-        }*/
-
         return root;
     }
 }
