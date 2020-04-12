@@ -96,14 +96,34 @@ public class MusicXMLParser {
 
     private Note readNote(XmlPullParser parser) throws XmlPullParserException, IOException {
         Note note = new Note();
+        String text = null;
         parser.require(XmlPullParser.START_TAG, namespace, "note");
         while (!isEndTag(parser.getName(), parser.getEventType(), "note")) {
             parser.next();
             switch(parser.getEventType()) {
+                case XmlPullParser.TEXT:
+                    text = parser.getText();
+                    break;
                 case XmlPullParser.START_TAG:
                     switch(parser.getName()) {
                         case "pitch":
                             note.setPitch(readPitch(parser));
+                            break;
+                    }
+                    break;
+                case XmlPullParser.END_TAG:
+                    switch(parser.getName()) {
+                        case "type":
+                            note.setType(text);
+                            break;
+                        case "dot":
+                            note.setDotted(true);
+                            break;
+                        case "beam":
+                            note.setBeam(text);
+                            break;
+                        case "rest":
+                            note.setRest(true);
                             break;
                     }
                     break;
