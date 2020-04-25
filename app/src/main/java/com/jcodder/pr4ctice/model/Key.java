@@ -3,6 +3,7 @@ package com.jcodder.pr4ctice.model;
 public class Key {
     private int fifths;
     private String mode;
+    private String glyphs;
 
     public int getFifths() {
         return fifths;
@@ -18,5 +19,13 @@ public class Key {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    public String getGlyphs() {
+        return glyphs;
+    }
+
+    public void setGlyphs(String glyphs) {
+        this.glyphs = glyphs;
     }
 }

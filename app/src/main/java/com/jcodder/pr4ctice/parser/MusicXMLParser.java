@@ -12,6 +12,8 @@ import com.jcodder.pr4ctice.model.Part;
 import com.jcodder.pr4ctice.model.Pitch;
 import com.jcodder.pr4ctice.model.Time;
 import com.jcodder.pr4ctice.parser.utils.StringUtils;
+import com.jcodder.pr4ctice.parser.utils.Tags;
+import com.jcodder.pr4ctice.smufl.SmuflTranslator;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,6 +23,7 @@ import java.io.InputStream;
 
 public class MusicXMLParser {
     private static final String namespace = null;
+    private SmuflTranslator translator = new SmuflTranslator();
 
     public Part parse(InputStream inputStream) throws XmlPullParserException, IOException {
         try {
@@ -38,15 +41,12 @@ public class MusicXMLParser {
 
     private Part readScore(XmlPullParser parser) throws XmlPullParserException, IOException {
         Part part = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "score-partwise");
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.SCORE_PARTWISE);
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
-            switch(parser.getEventType()) {
-                case XmlPullParser.START_TAG:
-                    if (parser.getName().equals("part")) {
-                        part = readPart(parser);
-                    }
-                    break;
-                default:
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
+                if (parser.getName().equals(Tags.PART)) {
+                    part = readPart(parser);
+                }
             }
         }
         return part;
@@ -54,16 +54,13 @@ public class MusicXMLParser {
 
     private Part readPart(XmlPullParser parser) throws XmlPullParserException, IOException {
         Part part = new Part();
-        parser.require(XmlPullParser.START_TAG, namespace, "part");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "part")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.PART);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.PART)) {
             parser.next();
-            switch(parser.getEventType()) {
-                case XmlPullParser.START_TAG:
-                    if (parser.getName().equals("measure")) {
-                        part.getMeasures().add(readMeasure(parser));
-                    }
-                    break;
-                default:
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
+                if (parser.getName().equals(Tags.MEASURE)) {
+                    part.getMeasures().add(readMeasure(parser));
+                }
             }
         }
         return part;
@@ -71,24 +68,21 @@ public class MusicXMLParser {
 
     private Measure readMeasure(XmlPullParser parser) throws XmlPullParserException, IOException {
         Measure measure = new Measure();
-        parser.require(XmlPullParser.START_TAG, namespace, "measure");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "measure")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.MEASURE);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.MEASURE)) {
             parser.next();
-            switch(parser.getEventType()) {
-                case XmlPullParser.START_TAG:
-                    switch(parser.getName()) {
-                        case "attributes":
-                            measure.getAttributes().add(readAttribute(parser));
-                            break;
-                        case "note":
-                            measure.getNotes().add(readNote(parser));
-                            break;
-                        case "direction":
-                            measure.getDirections().add(readDirection(parser));
-                            break;
-                    }
-                    break;
-                default:
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
+                switch (parser.getName()) {
+                    case Tags.ATTRIBUTES:
+                        measure.getAttributes().add(readAttribute(parser));
+                        break;
+                    case Tags.NOTE:
+                        measure.getNotes().add(readNote(parser));
+                        break;
+                    case Tags.DIRECTION:
+                        measure.getDirections().add(readDirection(parser));
+                        break;
+                }
             }
         }
         return measure;
@@ -97,32 +91,30 @@ public class MusicXMLParser {
     private Note readNote(XmlPullParser parser) throws XmlPullParserException, IOException {
         Note note = new Note();
         String text = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "note");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "note")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.NOTE);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.NOTE)) {
             parser.next();
             switch(parser.getEventType()) {
                 case XmlPullParser.TEXT:
                     text = parser.getText();
                     break;
                 case XmlPullParser.START_TAG:
-                    switch(parser.getName()) {
-                        case "pitch":
-                            note.setPitch(readPitch(parser));
-                            break;
+                    if (Tags.PITCH.equals(parser.getName())) {
+                        note.setPitch(readPitch(parser));
                     }
                     break;
                 case XmlPullParser.END_TAG:
                     switch(parser.getName()) {
-                        case "type":
+                        case Tags.TYPE:
                             note.setType(text);
                             break;
-                        case "dot":
+                        case Tags.DOT:
                             note.setDotted(true);
                             break;
-                        case "beam":
+                        case Tags.BEAM:
                             note.setBeam(text);
                             break;
-                        case "rest":
+                        case Tags.REST:
                             note.setRest(true);
                             break;
                     }
@@ -130,14 +122,15 @@ public class MusicXMLParser {
                 default:
             }
         }
+        note.setGlyphs(translator.getNoteGlyphs(note));
         return note;
     }
 
     private Pitch readPitch(XmlPullParser parser) throws XmlPullParserException, IOException {
         Pitch pitch = new Pitch();
         String text = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "pitch");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "pitch")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.PITCH);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.PITCH)) {
             parser.next();
             switch(parser.getEventType()) {
                 case XmlPullParser.TEXT:
@@ -145,15 +138,15 @@ public class MusicXMLParser {
                     break;
                 case XmlPullParser.END_TAG:
                     switch(parser.getName()) {
-                        case "step":
+                        case Tags.STEP:
                             pitch.setStep(text);
                             break;
-                        case "alter":
+                        case Tags.ALTER:
                             if (!StringUtils.isEmpty(text)) {
                                 pitch.setAlter(Integer.parseInt(text));
                             }
                             break;
-                        case "octave":
+                        case Tags.OCTAVE:
                             if (!StringUtils.isEmpty(text)) {
                                 pitch.setOctave(Integer.parseInt(text));
                             }
@@ -169,8 +162,8 @@ public class MusicXMLParser {
     private Attribute readAttribute(XmlPullParser parser) throws XmlPullParserException, IOException {
         Attribute attribute = new Attribute();
         String text = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "attributes");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "attributes")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.ATTRIBUTES);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.ATTRIBUTES)) {
             parser.next();
             switch(parser.getEventType()) {
                 case XmlPullParser.TEXT:
@@ -178,24 +171,22 @@ public class MusicXMLParser {
                     break;
                 case XmlPullParser.START_TAG:
                     switch(parser.getName()) {
-                        case "key":
+                        case Tags.KEY:
                             attribute.setKey(readKey(parser));
                             break;
-                        case "time":
+                        case Tags.TIME:
                             attribute.setTime(readTime(parser));
                             break;
-                        case "clef":
+                        case Tags.CLEF:
                             attribute.setClef(readClef(parser));
                             break;
                     }
                     break;
                 case XmlPullParser.END_TAG:
-                    switch(parser.getName()) {
-                        case "divisions":
-                            if (!StringUtils.isEmpty(text)) {
-                                attribute.setDivisions(Integer.parseInt(text));
-                            }
-                            break;
+                    if (Tags.DIVISIONS.equals(parser.getName())) {
+                        if (!StringUtils.isEmpty(text)) {
+                            attribute.setDivisions(Integer.parseInt(text));
+                        }
                     }
                     break;
                 default:
@@ -207,8 +198,8 @@ public class MusicXMLParser {
     private Key readKey(XmlPullParser parser) throws XmlPullParserException, IOException {
         Key key = new Key();
         String text = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "key");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "key")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.KEY);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.KEY)) {
             parser.next();
             switch(parser.getEventType()) {
                 case XmlPullParser.TEXT:
@@ -216,12 +207,12 @@ public class MusicXMLParser {
                     break;
                 case XmlPullParser.END_TAG:
                     switch(parser.getName()) {
-                        case "fifths":
+                        case Tags.FIFTHS:
                             if (!StringUtils.isEmpty(text)) {
                                 key.setFifths(Integer.parseInt(text));
                             }
                             break;
-                        case "mode":
+                        case Tags.MODE:
                             key.setMode(text);
                             break;
                     }
@@ -229,14 +220,15 @@ public class MusicXMLParser {
                 default:
             }
         }
+        key.setGlyphs(translator.getKeyGlyphs(key));
         return key;
     }
 
     private Time readTime(XmlPullParser parser) throws XmlPullParserException, IOException {
         Time time = new Time();
         String text = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "time");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "time")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.TIME);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.TIME)) {
             parser.next();
             switch(parser.getEventType()) {
                 case XmlPullParser.TEXT:
@@ -244,12 +236,12 @@ public class MusicXMLParser {
                     break;
                 case XmlPullParser.END_TAG:
                     switch(parser.getName()) {
-                        case "beats":
+                        case Tags.BEATS:
                             if (!StringUtils.isEmpty(text)) {
                                 time.setBeats(Integer.parseInt(text));
                             }
                             break;
-                        case "beat-type":
+                        case Tags.BEAT_TYPE:
                             if (!StringUtils.isEmpty(text)) {
                                 time.setBeatType(Integer.parseInt(text));
                             }
@@ -259,14 +251,15 @@ public class MusicXMLParser {
                 default:
             }
         }
+        time.setGlyphs(translator.getTimeGlyphs(time));
         return time;
     }
 
     private Clef readClef(XmlPullParser parser) throws XmlPullParserException, IOException {
         Clef clef = new Clef();
         String text = null;
-        parser.require(XmlPullParser.START_TAG, namespace, "clef");
-        while (!isEndTag(parser.getName(), parser.getEventType(), "clef")) {
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.CLEF);
+        while (!isEndTag(parser.getName(), parser.getEventType(), Tags.CLEF)) {
             parser.next();
             switch(parser.getEventType()) {
                 case XmlPullParser.TEXT:
@@ -274,10 +267,10 @@ public class MusicXMLParser {
                     break;
                 case XmlPullParser.END_TAG:
                     switch(parser.getName()) {
-                        case "sign":
+                        case Tags.SIGN:
                             clef.setSign(text);
                             break;
-                        case "line":
+                        case Tags.LINE:
                             if (!StringUtils.isEmpty(text)) {
                                 clef.setLine(Integer.parseInt(text));
                             }
@@ -287,13 +280,14 @@ public class MusicXMLParser {
                 default:
             }
         }
+        clef.setGlyphs(translator.getClefGlyphs(clef));
         return clef;
     }
 
     private Direction readDirection(XmlPullParser parser) throws XmlPullParserException, IOException {
         Direction direction = new Direction();
-        parser.require(XmlPullParser.START_TAG, namespace, "direction");
-        skip(parser, "direction");
+        parser.require(XmlPullParser.START_TAG, namespace, Tags.DIRECTION);
+        skip(parser, Tags.DIRECTION);
         return direction;
     }
 

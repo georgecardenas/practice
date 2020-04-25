@@ -3,6 +3,7 @@ package com.jcodder.pr4ctice.model;
 public class Time {
     private int beats;
     private int beatType;
+    private String glyphs;
 
     public int getBeats() {
         return beats;
@@ -18,5 +19,13 @@ public class Time {
 
     public void setBeatType(int beatType) {
         this.beatType = beatType;
+    }
+
+    public String getGlyphs() {
+        return glyphs;
+    }
+
+    public void setGlyphs(String glyphs) {
+        this.glyphs = glyphs;
     }
 }

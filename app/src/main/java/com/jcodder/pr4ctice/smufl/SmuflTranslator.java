@@ -1,18 +1,21 @@
-package com.jcodder.pr4ctice.writer;
+package com.jcodder.pr4ctice.smufl;
 
 import com.jcodder.pr4ctice.model.Attribute;
+import com.jcodder.pr4ctice.model.Clef;
+import com.jcodder.pr4ctice.model.Key;
 import com.jcodder.pr4ctice.model.Measure;
 import com.jcodder.pr4ctice.model.Note;
 import com.jcodder.pr4ctice.model.Part;
+import com.jcodder.pr4ctice.model.Time;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class SmuflWriter {
+public class SmuflTranslator {
     private HashMap<String, String> mapper;
 
-    public SmuflWriter() {
+    public SmuflTranslator() {
         mapper = new HashMap<>();
 
         mapper.put("clefG2","\uE050");
@@ -91,6 +94,8 @@ public class SmuflWriter {
 
         mapper.put("staff", "\uE01A");
         mapper.put("barlinesingle", "\uE030");
+        mapper.put("accidentalsharp", "\uE262");
+        mapper.put("accidentalflat", "\uE261");
     }
 
     public List<String> write(Part part) {
@@ -167,6 +172,96 @@ public class SmuflWriter {
         return lines;
     }
 
+    public String getNoteGlyphs(Note note) {
+        StringBuilder sb = new StringBuilder("");
+
+        if (note.isRest()) {
+            sb.append(mapper.get("r" + note.getType()));
+            if (note.isDotted()) {
+                if ("quarter".equals(note.getType())){
+                    sb.append(mapper.get("C5"));
+                }
+                sb.append(mapper.get("dot"));
+            }
+        } else {
+            sb.append(mapper.get("" + note.getPitch().getStep() + note.getPitch().getOctave()));
+
+            if (note.getBeam() == null){
+                sb.append(mapper.get("n" + note.getType() + getNoteVerticalDirection(note.getPitch().getOctave(), note.getPitch().getStep())));
+            } else {
+                sb.append(mapper.get("n" + "quarter" + getNoteVerticalDirection(note.getPitch().getOctave(), note.getPitch().getStep())));
+            }
+
+            if (!"B4".equals("" + note.getPitch().getStep() + note.getPitch().getOctave())) {
+                sb.append("- ");
+            } else {
+                sb.append(" ");
+            }
+
+            if (note.isDotted()) {
+                sb.append(mapper.get("" + note.getPitch().getStep() + note.getPitch().getOctave()));
+                sb.append(mapper.get("dot"));
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public String getClefGlyphs(Clef clef) {
+        StringBuilder sb = new StringBuilder("");
+
+        sb.append(mapper.get("clef" + clef.getSign() + clef.getLine()));
+
+        return sb.toString();
+    }
+
+    public String getTimeGlyphs(Time time) {
+        StringBuilder sb = new StringBuilder("");
+
+        sb.append(writeTime(time.getBeats(), "timenumerator"));
+        sb.append(writeTime(time.getBeatType(), "timedenominator"));
+
+        return sb.toString();
+    }
+
+    public String getKeyGlyphs(Key key) {
+        StringBuilder sb = new StringBuilder("");
+
+        for (int i = 0; i < key.getFifths(); i++) {
+            if ("major".equals(key.getMode())) {
+                switch(i) {
+                    case 0:
+                        sb.append(mapper.get("F5"));
+                        break;
+                    case 1:
+                        sb.append(mapper.get("C5"));
+                        break;
+                    case 2:
+                        sb.append(mapper.get("G5"));
+                        break;
+                    case 3:
+                        sb.append(mapper.get("D5"));
+                        break;
+                    case 4:
+                        sb.append(mapper.get("A4"));
+                        break;
+                    case 5:
+                        sb.append(mapper.get("E5"));
+                        break;
+                    case 6:
+                        sb.append(mapper.get("B5"));
+                        break;
+                }
+                sb.append(mapper.get("accidentalsharp"));
+                sb.append("-");
+            } else {
+                sb.append(mapper.get("accidentalflat"));
+            }
+        }
+
+        return sb.toString();
+    }
+
     private String writeTime(int time, String modifier) {
         String timeString = String.valueOf(time);
         StringBuilder sb = new StringBuilder("");
@@ -183,7 +278,6 @@ public class SmuflWriter {
         if (octave >= 5 || (octave == 4 && "B".equals(step))) {
             return "down";
         }
-
         return "up";
     }
 }

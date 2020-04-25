@@ -6,6 +6,8 @@ public class Note {
     private String beam;
     private boolean dotted;
     private boolean rest;
+    private String glyphs;
+    private boolean selected;
 
     public Pitch getPitch() {
         return pitch;
@@ -45,5 +47,21 @@ public class Note {
 
     public void setRest(boolean rest) {
         this.rest = rest;
+    }
+
+    public String getGlyphs() {
+        return glyphs;
+    }
+
+    public void setGlyphs(String glyphs) {
+        this.glyphs = glyphs;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }
